@@ -1,18 +1,26 @@
-# 克隆你的fork倉庫到本地
-git clone https://github.com/你的帳號/mem0.git
+FROM python:3.11-slim
+WORKDIR /app
 
-# 進入專案目錄
-cd mem0
+# 安裝系統依賴
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# 創建Dockerfile
-touch Dockerfile
+# 安裝Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="/root/.local/bin:$PATH"
 
-# 用編輯器打開Dockerfile（例如VSCode）
-code Dockerfile  # 或使用其他編輯器命令
+# 複製專案文件
+COPY pyproject.toml poetry.lock* ./
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-root --only main
 
-# 貼入完整Dockerfile內容後保存
+# 複製原始碼
+COPY . .
 
-# 提交到GitHub
-git add Dockerfile
-git commit -m "新增Dockerfile用於Zeabur部署"
-git push origin main
+# 設置環境變數
+ENV MEM0_DB_URL=${MEM0_DB_URL}
+EXPOSE 8000
+
+CMD ["poetry", "run", "uvicorn", "mem0.api:app", "--host", "0.0.0.0", "--port", "8000"]

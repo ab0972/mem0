@@ -17,7 +17,7 @@ COPY pyproject.toml poetry.lock* ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-root --only main
 
-# 明確安裝uvicorn和fastapi (避免缺少依賴)
+# 明確安裝uvicorn和fastapi
 RUN pip install uvicorn fastapi
 
 # 複製原始碼
@@ -33,8 +33,5 @@ ENV MEM0_LOG_LEVEL=${MEM0_LOG_LEVEL:-info}
 
 EXPOSE 8000
 
-# 提供兩種可能的啟動命令，取消註釋正確的一個
-# 方案1: 如果應用入口在server目錄
-CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8000"]
-# 方案2: 如果應用入口在mem0目錄
-# CMD ["uvicorn", "mem0.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# 使用mem0.api作為入口點
+CMD ["uvicorn", "mem0.api:app", "--host", "0.0.0.0", "--port", "8000"]
